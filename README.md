@@ -420,4 +420,6 @@ Amazon/
 
 <h3>Author</h3>
 
-<strong>[Your Name]</strong>, Data Analyst · <a href="https://www.linkedin.com/in/your-profile">LinkedIn</a> · <a href="mailto:you@example.com">Email</a>
+
+<strong>Algirdas Vailionis</strong>, Data Analyst/Scientist · <a href="https://www.linkedin.com/in/algirdas-vailionis/">LinkedIn</a> · <a href="mailto:algirdas.vailionis@gmail.com">Email</a>
+
