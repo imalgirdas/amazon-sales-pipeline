@@ -9,7 +9,7 @@
       <br>
       The business has served over <strong>42,000</strong> customers through about <strong>85,000</strong> orders and <strong>203,000</strong> order lines, generating <strong>$20.6 million</strong> in net revenue. The data spans sales, products, sellers, customers, payments, marketing, shipments, inventory, returns and reviews.<br>
       <br>
-      Reporting to the <strong>Head of Sales</strong>, I analysed performance from 2021 to 2025 to explain what drove growth, why targets were missed in some years, and where the business should focus next. The analysis focuses on these areas:
+      I analysed performance from 2021 to 2025 to explain what drove growth, why targets were missed in some years, and where the business should focus next. The analysis focuses on these areas:
       <h3>Northstar Metrics</h3>
       <ul>
         <li><strong>Sales trends:</strong> revenue, number of orders, average order value (AOV) and performance against target.</li>
