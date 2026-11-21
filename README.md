@@ -1,6 +1,5 @@
 <h1 align="center">Amazon Marketplace Sales Performance Report</h1>
 <p align="center"><em>2021–2025 · R · tidyverse · ggplot2 · R Markdown</em></p>
-<p align="center"><sub>The dataset is a simulated Amazon-style marketplace dataset built to mirror real e-commerce patterns. It is not Amazon's internal data.</sub></p>
 
 <table align="center">
   <tr>
