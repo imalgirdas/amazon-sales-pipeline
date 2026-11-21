@@ -1,0 +1,28 @@
+table,rule,rows_affected
+calendar,exact duplicate rows removed,0
+categories,exact duplicate rows removed,0
+sellers,exact duplicate rows removed,0
+products,exact duplicate rows removed,0
+warehouses,exact duplicate rows removed,0
+customers,exact duplicate rows removed,0
+campaigns,exact duplicate rows removed,0
+orders,exact duplicate rows removed,0
+order_items,exact duplicate rows removed,0
+payments,exact duplicate rows removed,0
+shipments,exact duplicate rows removed,0
+returns,exact duplicate rows removed,0
+reviews,exact duplicate rows removed,0
+inventory_monthly,exact duplicate rows removed,0
+marketing_daily,exact duplicate rows removed,0
+sales_targets,exact duplicate rows removed,0
+customers,birth_year outside 1920-2010 set to NA,0
+customers,prime_since cleared for non-members,0
+products,non-positive price or cost flagged,0
+orders,order_total does not reconcile (flagged),0
+order_items,non-positive quantity removed,0
+order_items,line_total does not reconcile (flagged),0
+orders,items_subtotal differs from sum of lines,0
+payments,"failed payment attempts (kept, flagged)",2420
+shipments,delivered before ship date (set to NA),0
+reviews,rating outside 1-5 removed,0
+inventory_monthly,negative closing stock set to 0,0

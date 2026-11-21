@@ -1,0 +1,267 @@
+year,top_category,return_reason,returns
+2021,Beauty & Personal Care,arrived_late,20
+2021,Beauty & Personal Care,better_price_elsewhere,15
+2021,Beauty & Personal Care,changed_mind,23
+2021,Beauty & Personal Care,defective_damaged,42
+2021,Beauty & Personal Care,not_as_described,30
+2021,Beauty & Personal Care,wrong_size_fit,6
+2021,Books & Media,arrived_late,18
+2021,Books & Media,better_price_elsewhere,10
+2021,Books & Media,changed_mind,22
+2021,Books & Media,defective_damaged,34
+2021,Books & Media,not_as_described,34
+2021,Books & Media,wrong_size_fit,6
+2021,Electronics,arrived_late,87
+2021,Electronics,better_price_elsewhere,71
+2021,Electronics,changed_mind,118
+2021,Electronics,defective_damaged,240
+2021,Electronics,not_as_described,145
+2021,Electronics,wrong_size_fit,22
+2021,Fashion,arrived_late,72
+2021,Fashion,better_price_elsewhere,54
+2021,Fashion,changed_mind,139
+2021,Fashion,defective_damaged,58
+2021,Fashion,not_as_described,92
+2021,Fashion,wrong_size_fit,425
+2021,Grocery,arrived_late,3
+2021,Grocery,better_price_elsewhere,1
+2021,Grocery,changed_mind,2
+2021,Grocery,defective_damaged,2
+2021,Home & Kitchen,arrived_late,42
+2021,Home & Kitchen,better_price_elsewhere,26
+2021,Home & Kitchen,changed_mind,64
+2021,Home & Kitchen,defective_damaged,91
+2021,Home & Kitchen,not_as_described,44
+2021,Home & Kitchen,wrong_size_fit,6
+2021,Pet Supplies,arrived_late,8
+2021,Pet Supplies,better_price_elsewhere,5
+2021,Pet Supplies,changed_mind,5
+2021,Pet Supplies,defective_damaged,11
+2021,Pet Supplies,not_as_described,17
+2021,Pet Supplies,wrong_size_fit,1
+2021,Sports & Outdoors,arrived_late,36
+2021,Sports & Outdoors,better_price_elsewhere,33
+2021,Sports & Outdoors,changed_mind,59
+2021,Sports & Outdoors,defective_damaged,96
+2021,Sports & Outdoors,not_as_described,59
+2021,Sports & Outdoors,wrong_size_fit,9
+2021,Toys & Games,arrived_late,21
+2021,Toys & Games,better_price_elsewhere,12
+2021,Toys & Games,changed_mind,37
+2021,Toys & Games,defective_damaged,47
+2021,Toys & Games,not_as_described,31
+2021,Toys & Games,wrong_size_fit,11
+2022,Beauty & Personal Care,arrived_late,42
+2022,Beauty & Personal Care,better_price_elsewhere,15
+2022,Beauty & Personal Care,changed_mind,36
+2022,Beauty & Personal Care,defective_damaged,46
+2022,Beauty & Personal Care,not_as_described,42
+2022,Beauty & Personal Care,wrong_size_fit,4
+2022,Books & Media,arrived_late,25
+2022,Books & Media,better_price_elsewhere,17
+2022,Books & Media,changed_mind,31
+2022,Books & Media,defective_damaged,44
+2022,Books & Media,not_as_described,29
+2022,Books & Media,wrong_size_fit,6
+2022,Electronics,arrived_late,137
+2022,Electronics,better_price_elsewhere,88
+2022,Electronics,changed_mind,150
+2022,Electronics,defective_damaged,290
+2022,Electronics,not_as_described,166
+2022,Electronics,wrong_size_fit,22
+2022,Fashion,arrived_late,141
+2022,Fashion,better_price_elsewhere,65
+2022,Fashion,changed_mind,210
+2022,Fashion,defective_damaged,92
+2022,Fashion,not_as_described,190
+2022,Fashion,wrong_size_fit,643
+2022,Grocery,arrived_late,2
+2022,Grocery,better_price_elsewhere,1
+2022,Grocery,changed_mind,11
+2022,Grocery,defective_damaged,8
+2022,Grocery,not_as_described,6
+2022,Grocery,wrong_size_fit,3
+2022,Home & Kitchen,arrived_late,60
+2022,Home & Kitchen,better_price_elsewhere,33
+2022,Home & Kitchen,changed_mind,87
+2022,Home & Kitchen,defective_damaged,135
+2022,Home & Kitchen,not_as_described,118
+2022,Home & Kitchen,wrong_size_fit,27
+2022,Pet Supplies,arrived_late,16
+2022,Pet Supplies,better_price_elsewhere,4
+2022,Pet Supplies,changed_mind,21
+2022,Pet Supplies,defective_damaged,26
+2022,Pet Supplies,not_as_described,17
+2022,Pet Supplies,wrong_size_fit,3
+2022,Sports & Outdoors,arrived_late,58
+2022,Sports & Outdoors,better_price_elsewhere,48
+2022,Sports & Outdoors,changed_mind,79
+2022,Sports & Outdoors,defective_damaged,115
+2022,Sports & Outdoors,not_as_described,91
+2022,Sports & Outdoors,wrong_size_fit,21
+2022,Toys & Games,arrived_late,45
+2022,Toys & Games,better_price_elsewhere,19
+2022,Toys & Games,changed_mind,54
+2022,Toys & Games,defective_damaged,72
+2022,Toys & Games,not_as_described,72
+2022,Toys & Games,wrong_size_fit,10
+2023,Beauty & Personal Care,arrived_late,25
+2023,Beauty & Personal Care,better_price_elsewhere,36
+2023,Beauty & Personal Care,changed_mind,60
+2023,Beauty & Personal Care,defective_damaged,79
+2023,Beauty & Personal Care,not_as_described,47
+2023,Beauty & Personal Care,wrong_size_fit,7
+2023,Books & Media,arrived_late,13
+2023,Books & Media,better_price_elsewhere,11
+2023,Books & Media,changed_mind,32
+2023,Books & Media,defective_damaged,49
+2023,Books & Media,not_as_described,26
+2023,Books & Media,wrong_size_fit,5
+2023,Electronics,arrived_late,70
+2023,Electronics,better_price_elsewhere,80
+2023,Electronics,changed_mind,103
+2023,Electronics,defective_damaged,233
+2023,Electronics,not_as_described,150
+2023,Electronics,wrong_size_fit,22
+2023,Fashion,arrived_late,97
+2023,Fashion,better_price_elsewhere,65
+2023,Fashion,changed_mind,240
+2023,Fashion,defective_damaged,117
+2023,Fashion,not_as_described,202
+2023,Fashion,wrong_size_fit,667
+2023,Grocery,arrived_late,3
+2023,Grocery,better_price_elsewhere,1
+2023,Grocery,changed_mind,7
+2023,Grocery,defective_damaged,11
+2023,Grocery,not_as_described,5
+2023,Home & Kitchen,arrived_late,50
+2023,Home & Kitchen,better_price_elsewhere,57
+2023,Home & Kitchen,changed_mind,100
+2023,Home & Kitchen,defective_damaged,145
+2023,Home & Kitchen,not_as_described,85
+2023,Home & Kitchen,wrong_size_fit,17
+2023,Pet Supplies,arrived_late,15
+2023,Pet Supplies,better_price_elsewhere,12
+2023,Pet Supplies,changed_mind,25
+2023,Pet Supplies,defective_damaged,38
+2023,Pet Supplies,not_as_described,30
+2023,Pet Supplies,wrong_size_fit,5
+2023,Sports & Outdoors,arrived_late,41
+2023,Sports & Outdoors,better_price_elsewhere,43
+2023,Sports & Outdoors,changed_mind,86
+2023,Sports & Outdoors,defective_damaged,84
+2023,Sports & Outdoors,not_as_described,89
+2023,Sports & Outdoors,wrong_size_fit,15
+2023,Toys & Games,arrived_late,27
+2023,Toys & Games,better_price_elsewhere,34
+2023,Toys & Games,changed_mind,59
+2023,Toys & Games,defective_damaged,75
+2023,Toys & Games,not_as_described,58
+2023,Toys & Games,wrong_size_fit,8
+2024,Beauty & Personal Care,arrived_late,24
+2024,Beauty & Personal Care,better_price_elsewhere,30
+2024,Beauty & Personal Care,changed_mind,56
+2024,Beauty & Personal Care,defective_damaged,92
+2024,Beauty & Personal Care,not_as_described,81
+2024,Beauty & Personal Care,wrong_size_fit,18
+2024,Books & Media,arrived_late,8
+2024,Books & Media,better_price_elsewhere,11
+2024,Books & Media,changed_mind,26
+2024,Books & Media,defective_damaged,38
+2024,Books & Media,not_as_described,29
+2024,Electronics,arrived_late,63
+2024,Electronics,better_price_elsewhere,63
+2024,Electronics,changed_mind,81
+2024,Electronics,defective_damaged,207
+2024,Electronics,not_as_described,139
+2024,Electronics,wrong_size_fit,9
+2024,Fashion,arrived_late,54
+2024,Fashion,better_price_elsewhere,68
+2024,Fashion,changed_mind,180
+2024,Fashion,defective_damaged,106
+2024,Fashion,not_as_described,168
+2024,Fashion,wrong_size_fit,533
+2024,Grocery,arrived_late,3
+2024,Grocery,better_price_elsewhere,3
+2024,Grocery,changed_mind,10
+2024,Grocery,defective_damaged,15
+2024,Grocery,not_as_described,13
+2024,Grocery,wrong_size_fit,1
+2024,Home & Kitchen,arrived_late,45
+2024,Home & Kitchen,better_price_elsewhere,46
+2024,Home & Kitchen,changed_mind,96
+2024,Home & Kitchen,defective_damaged,141
+2024,Home & Kitchen,not_as_described,110
+2024,Home & Kitchen,wrong_size_fit,27
+2024,Pet Supplies,arrived_late,11
+2024,Pet Supplies,better_price_elsewhere,12
+2024,Pet Supplies,changed_mind,17
+2024,Pet Supplies,defective_damaged,35
+2024,Pet Supplies,not_as_described,30
+2024,Pet Supplies,wrong_size_fit,8
+2024,Sports & Outdoors,arrived_late,34
+2024,Sports & Outdoors,better_price_elsewhere,37
+2024,Sports & Outdoors,changed_mind,72
+2024,Sports & Outdoors,defective_damaged,111
+2024,Sports & Outdoors,not_as_described,87
+2024,Sports & Outdoors,wrong_size_fit,10
+2024,Toys & Games,arrived_late,19
+2024,Toys & Games,better_price_elsewhere,33
+2024,Toys & Games,changed_mind,55
+2024,Toys & Games,defective_damaged,66
+2024,Toys & Games,not_as_described,49
+2024,Toys & Games,wrong_size_fit,12
+2025,Beauty & Personal Care,arrived_late,30
+2025,Beauty & Personal Care,better_price_elsewhere,38
+2025,Beauty & Personal Care,changed_mind,62
+2025,Beauty & Personal Care,defective_damaged,100
+2025,Beauty & Personal Care,not_as_described,94
+2025,Beauty & Personal Care,wrong_size_fit,20
+2025,Books & Media,arrived_late,6
+2025,Books & Media,better_price_elsewhere,9
+2025,Books & Media,changed_mind,15
+2025,Books & Media,defective_damaged,29
+2025,Books & Media,not_as_described,16
+2025,Books & Media,wrong_size_fit,6
+2025,Electronics,arrived_late,48
+2025,Electronics,better_price_elsewhere,66
+2025,Electronics,changed_mind,84
+2025,Electronics,defective_damaged,203
+2025,Electronics,not_as_described,100
+2025,Electronics,wrong_size_fit,14
+2025,Fashion,arrived_late,61
+2025,Fashion,better_price_elsewhere,83
+2025,Fashion,changed_mind,192
+2025,Fashion,defective_damaged,85
+2025,Fashion,not_as_described,177
+2025,Fashion,wrong_size_fit,546
+2025,Grocery,arrived_late,4
+2025,Grocery,better_price_elsewhere,6
+2025,Grocery,changed_mind,9
+2025,Grocery,defective_damaged,9
+2025,Grocery,not_as_described,16
+2025,Grocery,wrong_size_fit,3
+2025,Home & Kitchen,arrived_late,38
+2025,Home & Kitchen,better_price_elsewhere,42
+2025,Home & Kitchen,changed_mind,109
+2025,Home & Kitchen,defective_damaged,139
+2025,Home & Kitchen,not_as_described,112
+2025,Home & Kitchen,wrong_size_fit,23
+2025,Pet Supplies,arrived_late,9
+2025,Pet Supplies,better_price_elsewhere,10
+2025,Pet Supplies,changed_mind,38
+2025,Pet Supplies,defective_damaged,35
+2025,Pet Supplies,not_as_described,19
+2025,Pet Supplies,wrong_size_fit,5
+2025,Sports & Outdoors,arrived_late,34
+2025,Sports & Outdoors,better_price_elsewhere,34
+2025,Sports & Outdoors,changed_mind,76
+2025,Sports & Outdoors,defective_damaged,100
+2025,Sports & Outdoors,not_as_described,87
+2025,Sports & Outdoors,wrong_size_fit,24
+2025,Toys & Games,arrived_late,34
+2025,Toys & Games,better_price_elsewhere,21
+2025,Toys & Games,changed_mind,47
+2025,Toys & Games,defective_damaged,57
+2025,Toys & Games,not_as_described,45
+2025,Toys & Games,wrong_size_fit,15

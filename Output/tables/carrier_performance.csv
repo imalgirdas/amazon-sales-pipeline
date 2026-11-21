@@ -1,0 +1,21 @@
+year,carrier,shipments,late_pct,avg_days
+2021,ExpressLine,2475,24.5,4.72
+2021,National Post,1784,41.2,5.54
+2021,ParcelPro,3655,21,4.55
+2021,Platform Fleet,4219,15.4,4.23
+2022,ExpressLine,2635,37.6,5.25
+2022,National Post,2020,54.9,6.06
+2022,ParcelPro,4149,33,5
+2022,Platform Fleet,5818,27,4.69
+2023,ExpressLine,2323,16.1,3.99
+2023,National Post,1779,28.1,4.6
+2023,ParcelPro,3887,13,3.81
+2023,Platform Fleet,7383,8.9,3.53
+2024,ExpressLine,2453,9.3,3.32
+2024,National Post,1846,17.9,3.89
+2024,ParcelPro,4059,7,3.16
+2024,Platform Fleet,10205,5.5,2.99
+2025,ExpressLine,2597,5.9,2.98
+2025,National Post,1711,12.6,3.35
+2025,ParcelPro,4140,5.2,2.87
+2025,Platform Fleet,12657,4.5,2.66
