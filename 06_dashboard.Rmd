@@ -1,0 +1,642 @@
+---
+title: "Amazon Sales Dashboard 2021-2025"
+output:
+  html_document:
+    self_contained: true
+    theme: default
+    toc: false
+    fig_retina: 2
+    df_print: kable
+---
+
+<!--
+-----------------------------------------------------------------------------
+Script:   06_dashboard.Rmd
+Purpose:  Five-page HTML sales dashboard with a tab menu: sales overview,
+          products and categories, customers, marketing and channels,
+          fulfilment and quality. Under each chart there is a short
+          written result. The numbers in the text are calculated from
+          the data, so the text updates when the data changes.
+
+Input:    Output/03_analysis_tables.rds, Output/04_explore_results.rds,
+          Output/05_charts.rds, 00_theme.R
+Output:   06_dashboard.html (Knit in RStudio, or render from 07_run_all.R)
+-----------------------------------------------------------------------------
+-->
+
+```{r setup, include = FALSE}
+# Packages --------------------------------------------------------------------
+pkgs <- c("dplyr", "tidyr", "lubridate", "ggplot2", "scales", "forcats", "htmltools", "rmarkdown", "knitr")
+missing <- pkgs[!pkgs %in% rownames(installed.packages())]
+if (length(missing) > 0) install.packages(missing)
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(lubridate)
+  library(ggplot2)
+  library(scales)
+  library(forcats)
+  library(htmltools)
+})
+
+# Theme file is found whether the scripts sit in R/ or in the project root
+theme_file <- if (file.exists("R/00_theme.R")) "R/00_theme.R" else "00_theme.R"
+source(theme_file)
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.width = 11, fig.height = 6, dpi = 150, fig.align = "center",
+                      dev = if (requireNamespace("ragg", quietly = TRUE)) "ragg_png" else "png")
+
+# Data ------------------------------------------------------------------------
+# Tables from 03, 04 and 05. ly / fy = latest and first year, cur / prv / fst
+# are their KPI rows, used all through the text.
+a      <- readRDS("Output/03_analysis_tables.rds")
+ex     <- readRDS("Output/04_explore_results.rds")
+charts <- readRDS("Output/05_charts.rds")
+
+k   <- a$kpi_year
+ly  <- max(k$year)
+fy  <- min(k$year)
+cur <- k %>% filter(year == ly)
+prv <- k %>% filter(year == ly - 1)
+fst <- k %>% filter(year == fy)
+
+# Formatting helpers ----------------------------------------------------------
+# Number formats for the inline text: %, percentage points, +/- change, $ and
+# counts
+pc   <- function(x, d = 1) paste0(formatC(100 * x, format = "f", digits = d), "%")
+pp   <- function(x, d = 1) { x <- round(x, d + 2); paste0(ifelse(x >= 0, "+", ""), formatC(100 * x, format = "f", digits = d), " pp") }
+pp_abs <- function(x, d = 1) paste0(formatC(abs(100 * x), format = "f", digits = d), " pp")
+pc_abs <- function(x, d = 0) paste0(formatC(abs(100 * x), format = "f", digits = d), "%")
+reason_lbl <- function(x) dplyr::recode(x, wrong_size_fit = "wrong size or fit", defective_damaged = "defective or damaged",
+  not_as_described = "not as described", changed_mind = "changed mind", arrived_late = "arrived late",
+  better_price_elsewhere = "better price elsewhere")
+chg  <- function(x, d = 1) paste0(ifelse(x >= 0, "+", ""), formatC(100 * x, format = "f", digits = d), "%")
+usd  <- function(x) fmt_usd(x)
+num  <- function(x) format(round(x), big.mark = ",", trim = TRUE)
+
+# KPI cards -------------------------------------------------------------------
+# Card with label, value and change vs last year. The arrow colour depends on
+# whether the change is good or bad.
+kpi_card <- function(label, value, delta = NULL, good = NA) {
+  delta_class <- if (is.na(good)) "neutral" else if (good) "up" else "down"
+  delta_tag <- if (!is.null(delta)) {
+    tags$div(class = paste("kpi-delta", delta_class), delta)
+  }
+  tags$div(class = "kpi-card",
+           tags$div(class = "kpi-label", label),
+           tags$div(class = "kpi-value", value),
+           delta_tag)
+}
+kpi_row <- function(...) tags$div(class = "kpi-row", ...)
+delta_txt <- function(now, before, type = "pct") {
+  d <- if (type == "pct") now / before - 1 else round(now - before, 4)
+  txt <- if (type == "pct") chg(d) else pp(d)
+  list(text = paste(txt, "vs", ly - 1), good = d >= 0)
+}
+```
+
+```{r facts, include = FALSE}
+# Page 1 facts ---------------------------------------------------------------
+# Numbers quoted on page 1: CAGR, best and slowest growth year, peak month,
+# Nov-Dec share, missed targets, seasonality, event lift, international share
+cagr        <- (cur$revenue / fst$revenue)^(1 / (ly - fy)) - 1
+best_growth <- k %>% filter(!is.na(revenue_yoy)) %>% slice_max(revenue_yoy, n = 1)
+slow_growth <- k %>% filter(!is.na(revenue_yoy)) %>% slice_min(revenue_yoy, n = 1)
+peak_month  <- a$kpi_month %>% filter(year == ly) %>% slice_max(revenue, n = 1)
+q4_share    <- a$kpi_month %>% filter(year == ly) %>%
+  summarise(s = sum(revenue[month(month) %in% 11:12]) / sum(revenue)) %>% pull(s)
+missed      <- k %>% filter(target_attainment < 1)
+season_avg  <- ex$seasonality %>%
+  mutate(avg = rowMeans(across(-month)),
+         month = month.name[match(as.character(month), month.abb)]) %>% arrange(desc(avg))
+bf_lift     <- ex$event_lift %>% filter(event_name == "Black Friday") %>% pull(avg_lift_x)
+pd_lift     <- ex$event_lift %>% filter(event_name == "Mega Deal Days") %>% pull(avg_lift_x)
+intl        <- a$geo_year %>% filter(year == ly) %>%
+  summarise(share = sum(revenue[country != "US"]) / sum(revenue),
+            uk = sum(revenue[country == "UK"]), de = sum(revenue[country == "DE"]))
+
+# Page 2 facts ---------------------------------------------------------------
+# Category share winners and losers, fastest grower, top product, top 10
+# share, Pareto point, 3P numbers, categories on target
+cat_ly   <- a$category_year %>% filter(year == ly)
+cat_fy   <- a$category_year %>% filter(year == fy)
+share_ch <- cat_ly %>% select(top_category, s_ly = revenue_share) %>%
+  inner_join(cat_fy %>% select(top_category, s_fy = revenue_share), by = "top_category") %>%
+  mutate(change = s_ly - s_fy)
+loser    <- share_ch %>% slice_min(change, n = 1)
+gainer   <- share_ch %>% slice_max(change, n = 1)
+fastest  <- cat_ly %>% slice_max(revenue_yoy, n = 1)
+decline  <- cat_ly %>% filter(revenue_yoy < 0) %>% pull(top_category)
+top_cat  <- cat_ly %>% slice_max(revenue, n = 1)
+top_prod <- a$product_summary %>% slice_max(revenue, n = 1)
+top10_sh <- a$product_summary %>% slice_max(revenue, n = 10) %>% summarise(s = sum(revenue)) %>% pull(s) /
+  sum(a$product_summary$revenue)
+pareto   <- a$product_summary %>% arrange(desc(revenue)) %>%
+  mutate(cs = cumsum(revenue) / sum(revenue), rs = row_number() / n()) %>%
+  filter(cs >= 0.8) %>% slice(1) %>% pull(rs)
+s3p_ly   <- a$seller_year %>% filter(year == ly, seller_type == "3P")
+s3p_fy   <- a$seller_year %>% filter(year == fy, seller_type == "3P")
+cat_tgt_hit  <- cat_ly %>% filter(target_attainment >= 1) %>% nrow()
+
+# Page 3 facts ---------------------------------------------------------------
+# 12-month retention by cohort, RFM segment shares, Prime vs non-Prime AOV
+ret12     <- a$cohort_year_retention %>% filter(months_since == 12)
+ret_best  <- ret12 %>% slice_max(retention, n = 1)
+ret_worst <- ret12 %>% slice_min(retention, n = 1)
+ret1_ly   <- a$cohort_year_retention %>% filter(cohort_year == ly, months_since == 1) %>% pull(retention)
+rfm       <- a$customer_summary %>% group_by(rfm_segment) %>%
+  summarise(n = n(), rev = sum(revenue), .groups = "drop") %>%
+  mutate(cs = n / sum(n), rs = rev / sum(rev))
+champ     <- rfm %>% filter(rfm_segment == "Champions")
+risk      <- rfm %>% filter(rfm_segment == "At Risk")
+lost      <- rfm %>% filter(rfm_segment == "Lost / Hibernating")
+prime_aov <- ex$prime %>% filter(year == ly)
+prime_gap <- prime_aov$aov[prime_aov$is_prime_order] / prime_aov$aov[!prime_aov$is_prime_order] - 1
+
+# Page 4 facts ---------------------------------------------------------------
+# Channel share changes, ROAS, lowest conversion month, campaign ROI, app share
+# and payment mix
+chy      <- a$channel_year
+social   <- chy %>% filter(channel == "social_media")
+soc_fy   <- social %>% filter(year == fy) %>% pull(revenue_share)
+soc_ly   <- social %>% filter(year == ly) %>% pull(revenue_share)
+org_fy   <- chy %>% filter(year == fy, channel == "organic_search") %>% pull(revenue_share)
+org_ly   <- chy %>% filter(year == ly, channel == "organic_search") %>% pull(revenue_share)
+ps       <- chy %>% filter(channel == "paid_search")
+roas_22  <- k %>% filter(year == 2022) %>% pull(roas)
+email_ly <- chy %>% filter(year == ly, channel == "email")
+cr_min   <- a$kpi_month %>% slice_min(conversion_rate, n = 1)
+cr_ly    <- cur$conversion_rate
+camp     <- a$campaign_perf %>% mutate(campaign = sub(" [0-9]{4}$", "", campaign_name)) %>%
+  group_by(campaign) %>% summarise(budget = sum(budget_usd), gp = sum(gross_profit), .groups = "drop") %>%
+  mutate(roi = (gp - budget) / budget)
+camp_best  <- camp %>% slice_max(roi, n = 1)
+camp_worst <- camp %>% slice_min(roi, n = 1)
+camp_neg   <- camp %>% filter(roi < 0) %>% nrow()
+app_fy   <- a$device_year %>% filter(year == fy, device == "mobile_app") %>% pull(share)
+app_ly   <- a$device_year %>% filter(year == ly, device == "mobile_app") %>% pull(share)
+pay_ly   <- a$payment_year %>% filter(year == ly)
+pay_fy   <- a$payment_year %>% filter(year == fy)
+alt_ly   <- sum(pay_ly$share[pay_ly$payment_method %in% c("digital_wallet", "bnpl")])
+alt_fy   <- sum(pay_fy$share[pay_fy$payment_method %in% c("digital_wallet", "bnpl")])
+cc_ly    <- pay_ly$share[pay_ly$payment_method == "credit_card"]
+
+# Page 5 facts ---------------------------------------------------------------
+# Delivery peak, worst and best carrier, stockout peak, Fashion returns,
+# return reasons, late delivery vs rating
+dd       <- k %>% select(year, avg_delivery_days, late_rate, return_rate, avg_rating)
+dd_peak  <- dd %>% slice_max(avg_delivery_days, n = 1)
+car      <- a$logistics_month %>% group_by(year, carrier) %>%
+  summarise(late = sum(late) / sum(delivered), .groups = "drop")
+car_worst <- car %>% filter(year == dd_peak$year) %>% slice_max(late, n = 1)
+car_best  <- car %>% filter(year == ly) %>% slice_min(late, n = 1)
+stock_m  <- a$inventory_category_month %>% group_by(month) %>%
+  summarise(r = sum(stockout_products) / sum(products), .groups = "drop")
+stock_pk <- stock_m %>% slice_max(r, n = 1)
+stock_ly <- stock_m %>% filter(year(month) == ly) %>% summarise(r = mean(r)) %>% pull(r)
+fashion  <- a$category_year %>% filter(top_category == "Fashion")
+fash_pk  <- fashion %>% slice_max(return_rate, n = 1)
+fash_ly  <- fashion %>% filter(year == ly) %>% pull(return_rate)
+reasons  <- a$returns_reason_year %>% group_by(return_reason) %>%
+  summarise(n = sum(returns), .groups = "drop") %>% mutate(s = n / sum(n)) %>% arrange(desc(s))
+late_r   <- a$returns_reason_year %>% filter(return_reason == "arrived_late") %>%
+  group_by(year) %>% summarise(n = sum(returns), .groups = "drop")
+rating_lo <- dd %>% slice_min(avg_rating, n = 1)
+lvr      <- a$late_vs_rating %>% group_by(is_late) %>%
+  summarise(r = weighted.mean(avg_rating, reviews), .groups = "drop")
+gap_year   <- a$late_vs_rating %>% group_by(year) %>%
+  summarise(gap = avg_rating[!is_late] - avg_rating[is_late], .groups = "drop")
+rating_gap <- mean(gap_year$gap)
+```
+
+```{css, echo = FALSE}
+:root { --orange: #FF9900; --orange-dark: #C45500; --black: #131921; --ink: #232F3E;
+        --grey: #565959; --line: #E3E6E6; --pale: #FFF3E0; }
+body { background: #FFFFFF; color: var(--black); font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+       font-size: 15px; line-height: 1.55; }
+.main-container { max-width: 1240px; padding: 0 20px; }
+.title { display: none; }
+.dash-header { background: var(--black); color: #FFFFFF; margin: 0 -20px 0 -20px; padding: 22px 28px 18px;
+               border-bottom: 4px solid var(--orange); }
+.dash-header h1 { margin: 0; font-size: 26px; font-weight: 700; color: #FFFFFF; }
+.dash-header h1 span { color: var(--orange); }
+.dash-header p { margin: 4px 0 0; color: #D5D9D9; font-size: 14px; }
+
+/* Tab menu, sticks to the top when scrolling */
+.nav-tabs, .nav-pills { position: sticky; top: 0; z-index: 1000; background: var(--ink);
+  margin: 0 -20px 26px -20px; padding: 6px 20px; border: none; }
+.nav-pills > li > a, .nav-tabs > li > a { color: #FFFFFF; font-weight: 600; border-radius: 4px;
+  padding: 9px 16px; margin-right: 4px; border: none; background: transparent; }
+.nav-pills > li > a:hover, .nav-tabs > li > a:hover { background: #37475A; color: #FFFFFF; }
+.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus,
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+  background: var(--orange); color: var(--black); border: none; }
+
+h2 { font-weight: 700; }
+h3 { font-size: 20px; font-weight: 700; color: var(--black); border-left: 5px solid var(--orange);
+     padding-left: 10px; margin: 30px 0 12px; }
+.page-intro { color: var(--grey); margin: -6px 0 18px; }
+
+/* KPI cards at the top of each page */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 6px 0 22px; }
+.kpi-card { background: #FFFFFF; border: 1px solid var(--line); border-top: 4px solid var(--orange);
+            border-radius: 6px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.kpi-label { color: var(--grey); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.kpi-value { font-size: 28px; font-weight: 700; color: var(--black); line-height: 1.25; margin-top: 4px; }
+.kpi-delta { font-size: 13px; font-weight: 600; margin-top: 2px; }
+.kpi-delta.up::before { content: "\25B2  "; color: var(--orange-dark); }
+.kpi-delta.down::before { content: "\25BC  "; color: var(--ink); }
+.kpi-delta { color: var(--grey); }
+
+/* Chart frames and the orange result boxes */
+.figure, p > img { border: 1px solid var(--line); border-radius: 6px; padding: 6px; background: #FFFFFF; }
+img { max-width: 100%; height: auto; }
+.insight { background: var(--pale); border-left: 5px solid var(--orange); border-radius: 4px;
+           padding: 12px 16px; margin: 10px 0 34px; color: var(--black); }
+.insight p { margin: 0; }
+.footer { color: var(--grey); font-size: 12px; border-top: 1px solid var(--line); margin-top: 30px; padding: 12px 0 30px; }
+```
+
+```{r header}
+tags$div(class = "dash-header",
+         tags$h1(HTML("amazon <span>sales</span> dashboard")),
+         tags$p(sprintf("Synthetic e-commerce data, %d-%d | %s orders | %s revenue | Latest year: %d",
+                        fy, ly, num(sum(k$orders)), usd(sum(k$revenue)), ly)))
+```
+
+# {.tabset .tabset-pills}
+
+## 1. Sales overview
+
+<p class="page-intro">How much we sell, how fast it grows, and when it happens.</p>
+
+```{r}
+d_rev <- delta_txt(cur$revenue, prv$revenue)
+d_ord <- delta_txt(cur$orders, prv$orders)
+d_aov <- delta_txt(cur$aov, prv$aov)
+d_gm  <- delta_txt(cur$gross_margin, prv$gross_margin, "pp")
+d_tg  <- delta_txt(cur$target_attainment, prv$target_attainment, "pp")
+kpi_row(
+  kpi_card(paste("Revenue", ly), usd(cur$revenue), d_rev$text, d_rev$good),
+  kpi_card("Orders", num(cur$orders), d_ord$text, d_ord$good),
+  kpi_card("Average order value", dollar(cur$aov, accuracy = 0.01), d_aov$text, d_aov$good),
+  kpi_card("Gross margin", pc(cur$gross_margin), d_gm$text, d_gm$good),
+  kpi_card("Target achieved", pc(cur$target_attainment, 0), d_tg$text, d_tg$good)
+)
+```
+
+### Monthly revenue trend
+
+```{r}
+charts$revenue_trend
+```
+
+::: insight
+**Results.** Monthly revenue rose from about `r usd(a$kpi_month$revenue[1])` in January `r fy` to a record `r usd(peak_month$revenue)` in `r format(peak_month$month, "%B %Y")`. Each year peaks higher than the one before, and November and December together brought in `r pc(q4_share)` of `r ly` revenue. The 3-month average shows that growth continues outside the holiday season too.
+:::
+
+### Annual revenue and growth
+
+```{r, fig.height = 5.5}
+charts$revenue_year
+```
+
+::: insight
+**Results.** Revenue grew from `r usd(fst$revenue)` in `r fy` to `r usd(cur$revenue)` in `r ly`, a compound annual growth rate of `r pc(cagr)`. Growth was uneven. `r best_growth$year` was the strongest year (`r chg(best_growth$revenue_yoy)`), and `r slow_growth$year` the weakest (`r chg(slow_growth$revenue_yoy)`), when demand softened in the first half of the year.
+:::
+
+### Revenue vs target
+
+```{r, fig.height = 5.5}
+charts$revenue_vs_target
+```
+
+::: insight
+**Results.** The business missed its target in `r paste(missed$year, collapse = " and ")` (`r paste(pc(missed$target_attainment, 0), collapse = " and ")` of plan). In those years targets assumed growth of over 20% that did not happen. Targets were met or beaten in all other years, and `r ly` closed at `r pc(cur$target_attainment, 0)` of target.
+:::
+
+### Core KPIs by year
+
+```{r, fig.height = 4.2}
+charts$kpi_multiples
+```
+
+::: insight
+**Results.** Orders grew `r pc_abs(cur$orders / fst$orders - 1)` and active customers `r pc_abs(cur$customers / fst$customers - 1)` over the period. Average order value dipped to `r dollar(min(k$aov))` in 2022, when baskets got smaller as prices rose, then recovered to `r dollar(cur$aov)`. Gross margin slipped `r pp_abs(cur$gross_margin - fst$gross_margin)` because supplier costs rose slightly faster than selling prices.
+:::
+
+### Seasonality
+
+```{r, fig.height = 4.8}
+charts$seasonality
+```
+
+::: insight
+**Results.** `r season_avg$month[1]` and `r season_avg$month[2]` are the strongest months (index about `r round(season_avg$avg[1])` and `r round(season_avg$avg[2])`), and `r tail(season_avg$month, 1)` is the weakest (about `r round(tail(season_avg$avg, 1))`). July has become a second peak thanks to Mega Deal Days, which bring `r sprintf("%.1f", pd_lift)`x a normal day's revenue. Black Friday brings `r sprintf("%.1f", bf_lift)`x.
+:::
+
+### Revenue by country
+
+```{r, fig.height = 5.5}
+charts$country_mix
+```
+
+::: insight
+**Results.** Markets outside the US made up `r pc(intl$share)` of revenue in `r ly`. The UK (launched 2023) reached `r usd(intl$uk)` and Germany (launched 2024) `r usd(intl$de)`. Expansion added a growth source just as the US market slowed.
+:::
+
+## 2. Products & categories
+
+<p class="page-intro">Which categories, products and sellers drive revenue, and how the mix is shifting.</p>
+
+```{r}
+kpi_row(
+  kpi_card(paste("Top category", ly), top_cat$top_category, paste(pc(top_cat$revenue_share), "of revenue")),
+  kpi_card("Fastest growing", fastest$top_category, paste(chg(fastest$revenue_yoy), "vs", ly - 1)),
+  kpi_card("Marketplace (3P) share", pc(s3p_ly$revenue_share), paste(pp(s3p_ly$revenue_share - s3p_fy$revenue_share), "vs", fy), s3p_ly$revenue_share >= s3p_fy$revenue_share),
+  kpi_card("Commission income", usd(s3p_ly$commission_income), paste("from", s3p_ly$sellers, "sellers")),
+  kpi_card("Categories on target", paste(cat_tgt_hit, "of", nrow(cat_ly)), paste("in", ly))
+)
+```
+
+### Category mix shift
+
+```{r, fig.height = 6}
+charts$category_slope
+```
+
+::: insight
+**Results.** `r loser$top_category` remains the largest category but lost `r pp_abs(loser$change)` of share, falling from `r pc(loser$s_fy)` to `r pc(loser$s_ly)`. `r gainer$top_category` gained the most (`r pp(gainer$change)`). Beauty, Pet Supplies and Grocery more than doubled their share, which spreads revenue across more everyday, repeat-purchase categories.
+:::
+
+### Category growth in `r ly`
+
+```{r, fig.height = 5.5}
+charts$category_growth
+```
+
+::: insight
+**Results.** `r fastest$top_category` grew fastest in `r ly` (`r chg(fastest$revenue_yoy)`), followed by the other everyday categories. `r if (length(decline) > 0) paste0(paste(decline, collapse = " and "), " declined, so these are the categories to review for assortment and pricing.") else "No category declined."`
+:::
+
+### Monthly revenue by category
+
+```{r, fig.height = 8}
+charts$category_trend
+```
+
+::: insight
+**Results.** The categories follow very different seasonal patterns. Toys & Games and Electronics depend heavily on November-December, and Sports & Outdoors peaks in spring and summer. Beauty, Pet Supplies and Grocery grow steadily all year, which makes them the most predictable revenue.
+:::
+
+### Top 10 products
+
+```{r, fig.height = 6.5}
+charts$top_products
+```
+
+::: insight
+**Results.** The best-selling product (#`r top_prod$product_id`, `r top_prod$subcategory`) generated `r usd(top_prod$revenue)` over five years. The top 10 products account for `r pc(top10_sh)` of total revenue, and `r pc(pareto, 0)` of products generate 80% of revenue. Keeping these products in stock is a priority.
+:::
+
+### First-party vs marketplace sellers
+
+```{r, fig.height = 5.5}
+charts$seller_mix
+```
+
+::: insight
+**Results.** Marketplace (3P) sellers generated `r pc(s3p_ly$revenue_share)` of revenue in `r ly`, up from `r pc(s3p_fy$revenue_share)` in `r fy`. That earned `r usd(s3p_ly$commission_income)` in commission. The number of active 3P sellers grew to `r s3p_ly$sellers`, so the marketplace is now the main growth engine.
+:::
+
+## 3. Customers
+
+<p class="page-intro">Who buys, how often they come back, and which customers are most valuable.</p>
+
+```{r}
+d_cus <- delta_txt(cur$customers, prv$customers)
+d_ret <- delta_txt(cur$returning_share, prv$returning_share, "pp")
+d_pr  <- delta_txt(cur$prime_share, prv$prime_share, "pp")
+d_opc <- delta_txt(cur$orders_per_customer, prv$orders_per_customer)
+kpi_row(
+  kpi_card("Active customers", num(cur$customers), d_cus$text, d_cus$good),
+  kpi_card("Returning-customer orders", pc(cur$returning_share), d_ret$text, d_ret$good),
+  kpi_card("Prime share of orders", pc(cur$prime_share), d_pr$text, d_pr$good),
+  kpi_card("Orders per customer", sprintf("%.2f", cur$orders_per_customer), d_opc$text, d_opc$good),
+  kpi_card("New customers", num(cur$new_customers), delta_txt(cur$new_customers, prv$new_customers)$text,
+           cur$new_customers >= prv$new_customers)
+)
+```
+
+### New vs returning customers
+
+```{r, fig.height = 5.5}
+charts$new_vs_returning
+```
+
+::: insight
+**Results.** In `r fy`, returning customers placed `r pc(fst$returning_share, 0)` of orders. By `r ly` that rose to `r pc(cur$returning_share, 0)`. The number of new customers has stayed fairly flat since 2022, at around `r num(round(mean(k$new_customers[k$year >= 2022]), -2))` a year, so growth now comes mainly from existing customers buying more often.
+:::
+
+### Cohort retention
+
+```{r, fig.height = 5.5}
+charts$cohort_retention
+```
+
+::: insight
+**Results.** The `r ret_worst$cohort_year` cohort had the weakest loyalty: only `r pc(ret_worst$retention)` were still buying 12 months after their first order, because slow deliveries hurt their first experience. The `r ret_best$cohort_year` cohort reached `r pc(ret_best$retention)` after 12 months, and the `r ly` cohort is tracking even higher (`r pc(ret1_ly)` reordered within one month).
+:::
+
+### Prime membership
+
+```{r, fig.height = 5.5}
+charts$prime_share
+```
+
+::: insight
+**Results.** Prime members placed `r pc(cur$prime_share, 0)` of orders in `r ly`, up from `r pc(fst$prime_share, 0)` in `r fy`. The jump started with the loyalty push in 2023. Prime orders are also `r pc(prime_gap)` larger on average, so membership growth lifts both order frequency and basket size.
+:::
+
+### RFM customer segments
+
+```{r, fig.height = 5.5}
+charts$rfm_segments
+```
+
+::: insight
+**Results.** Champions are `r pc(champ$cs, 0)` of customers but bring `r pc(champ$rs, 0)` of revenue. At Risk customers (`r pc(risk$cs, 0)` of customers, `r pc(risk$rs, 0)` of revenue) used to buy often but have gone quiet, so they are the best target for win-back campaigns. Lost / Hibernating customers are the largest group (`r pc(lost$cs, 0)`), mostly one-time buyers.
+:::
+
+## 4. Marketing & channels
+
+<p class="page-intro">Where customers come from, what acquisition costs, and how campaigns perform.</p>
+
+```{r}
+d_cr   <- delta_txt(cur$conversion_rate, prv$conversion_rate, "pp")
+d_roas <- delta_txt(cur$roas, prv$roas)
+d_cac  <- delta_txt(cur$cac, prv$cac)
+kpi_row(
+  kpi_card("Conversion rate", pc(cur$conversion_rate, 2), d_cr$text, d_cr$good),
+  kpi_card("ROAS (revenue / ad spend)", sprintf("%.1fx", cur$roas), d_roas$text, d_roas$good),
+  kpi_card("Cost per new customer", dollar(cur$cac, accuracy = 0.01), d_cac$text, !d_cac$good),
+  kpi_card("Paid media spend", usd(cur$spend), delta_txt(cur$spend, prv$spend)$text),
+  kpi_card("Social media share", pc(soc_ly), paste(pp(soc_ly - soc_fy), "vs", fy))
+)
+```
+
+### Revenue share by channel
+
+```{r, fig.height = 5.5}
+charts$channel_share
+```
+
+::: insight
+**Results.** Social media grew from `r pc(soc_fy)` to `r pc(soc_ly)` of revenue and now matches paid search and organic search. Organic search fell from `r pc(org_fy)` to `r pc(org_ly)`, so the business relies more on paid traffic than it did in `r fy`.
+:::
+
+### Paid marketing efficiency
+
+```{r, fig.height = 5.5}
+charts$paid_efficiency
+```
+
+::: insight
+**Results.** Overall ROAS fell to `r sprintf("%.1fx", roas_22)` in 2022, when ad costs rose and conversion dropped, then recovered to `r sprintf("%.1fx", cur$roas)` in `r ly`. Email is by far the most efficient channel (ROAS `r sprintf("%.0fx", email_ly$roas)`). Paid search and social cost about `r dollar(mean(chy$cac[chy$year == ly & chy$channel %in% c("paid_search", "social_media")]), accuracy = 1)` per new customer.
+:::
+
+### Conversion rate
+
+```{r, fig.height = 5}
+charts$conversion
+```
+
+::: insight
+**Results.** Conversion hit its low of `r pc(cr_min$conversion_rate, 2)` in `r format(cr_min$month, "%B %Y")` and has improved steadily since, reaching `r pc(cr_ly, 2)` for `r ly` as a whole. The rise in mobile app use and Prime membership both support higher conversion.
+:::
+
+### Campaign return on investment
+
+```{r, fig.height = 6}
+charts$campaign_roi
+```
+
+::: insight
+**Results.** `r camp_best$campaign` is the most profitable campaign (ROI `r pc(camp_best$roi, 0)`). `r camp_neg` of `r nrow(camp)` campaign types lost money once discounts are counted. `r camp_worst$campaign` performs worst (`r pc(camp_worst$roi, 0)`). Large flagship events drive volume but give away margin through deep discounts, so their budgets and discount levels should be reviewed.
+:::
+
+### Device mix
+
+```{r, fig.height = 5.5}
+charts$device_mix
+```
+
+::: insight
+**Results.** The mobile app's share of orders grew from `r pc(app_fy, 0)` to `r pc(app_ly, 0)`, while desktop declined every year. App-first features and offers now reach the largest group of shoppers.
+:::
+
+### Payment methods
+
+```{r, fig.height = 5.5}
+charts$payment_mix
+```
+
+::: insight
+**Results.** Digital wallets and buy-now-pay-later together grew from `r pc(alt_fy, 0)` to `r pc(alt_ly, 0)` of orders. Credit cards are still the most used method but fell to `r pc(cc_ly, 0)`. Offering instalment payments matters more each year, especially for higher-priced electronics.
+:::
+
+## 5. Fulfilment & quality
+
+<p class="page-intro">Delivery speed, stock availability, returns and customer ratings.</p>
+
+```{r}
+d_dd <- delta_txt(cur$avg_delivery_days, prv$avg_delivery_days)
+d_lr <- delta_txt(cur$late_rate, prv$late_rate, "pp")
+d_rr <- delta_txt(cur$return_rate, prv$return_rate, "pp")
+d_ar <- list(text = sprintf("%+.2f vs %d", cur$avg_rating - prv$avg_rating, ly - 1),
+             good = cur$avg_rating >= prv$avg_rating)
+kpi_row(
+  kpi_card("Avg delivery time", sprintf("%.1f days", cur$avg_delivery_days), d_dd$text, !d_dd$good),
+  kpi_card("Late deliveries", pc(cur$late_rate), d_lr$text, !d_lr$good),
+  kpi_card("Return rate", pc(cur$return_rate), d_rr$text, !d_rr$good),
+  kpi_card("Average rating", sprintf("%.2f / 5", cur$avg_rating), d_ar$text, d_ar$good),
+  kpi_card("Cancellation rate", pc(cur$cancel_rate), delta_txt(cur$cancel_rate, prv$cancel_rate, "pp")$text,
+           cur$cancel_rate <= prv$cancel_rate)
+)
+```
+
+### Delivery time
+
+```{r, fig.height = 5}
+charts$delivery_days
+```
+
+::: insight
+**Results.** Delivery took longest in `r dd_peak$year` (`r sprintf("%.1f", dd_peak$avg_delivery_days)` days on average). New warehouses in 2023-2024 and faster next-day shipping brought it down to `r sprintf("%.1f", cur$avg_delivery_days)` days in `r ly`. Every November-December still shows a small spike as volume peaks.
+:::
+
+### Late deliveries by carrier
+
+```{r, fig.height = 5.5}
+charts$late_by_carrier
+```
+
+::: insight
+**Results.** In `r dd_peak$year`, `r car_worst$carrier` delivered `r pc(car_worst$late, 0)` of orders late, and the company-wide late rate reached `r pc(dd_peak$late_rate, 0)`. By `r ly` the late rate fell to `r pc(cur$late_rate)`. `r car_best$carrier` is now the most reliable carrier (`r pc(car_best$late)` late).
+:::
+
+### Stockouts
+
+```{r, fig.height = 5}
+charts$stockouts
+```
+
+::: insight
+**Results.** Stockouts peaked in `r format(stock_pk$month, "%B %Y")`, when `r pc(stock_pk$r, 0)` of active products ran out at some point in the month. In `r ly` the monthly average was `r pc(stock_ly)`. Lost availability in 2022 is one reason that year missed its sales target.
+:::
+
+### Return rate by category
+
+```{r, fig.height = 6}
+charts$return_heatmap
+```
+
+::: insight
+**Results.** Fashion has by far the highest return rate, peaking at `r pc(fash_pk$return_rate)` in `r fash_pk$year`, mostly because of size and fit. The stricter return policy introduced in 2024 cut it to `r pc(fash_ly)` in `r ly`, and the overall return rate fell from `r pc(max(k$return_rate))` to `r pc(cur$return_rate)`.
+:::
+
+### Return reasons
+
+```{r, fig.height = 5}
+charts$return_reasons
+```
+
+::: insight
+**Results.** The most common return reasons are `r reason_lbl(reasons$return_reason[1])` (`r pc(reasons$s[1], 0)`) and `r reason_lbl(reasons$return_reason[2])` (`r pc(reasons$s[2], 0)`). Late arrival caused `r pc(reasons$s[reasons$return_reason == "arrived_late"], 0)` of returns, and these were concentrated in 2022. Better product pages and quality checks would address the top two reasons.
+:::
+
+### Customer ratings
+
+```{r, fig.height = 5}
+charts$avg_rating
+```
+
+::: insight
+**Results.** The average rating dropped to `r sprintf("%.2f", rating_lo$avg_rating)` in `r rating_lo$year`, when deliveries were slowest, and recovered to `r sprintf("%.2f", cur$avg_rating)` in `r ly`, the best result in five years.
+:::
+
+### Late delivery vs rating
+
+```{r, fig.height = 5.5}
+charts$late_vs_rating
+```
+
+::: insight
+**Results.** Items delivered late are rated `r sprintf("%.1f", rating_gap)` stars lower than items delivered on time, on average across years (between `r sprintf("%.1f", min(gap_year$gap))` and `r sprintf("%.1f", max(gap_year$gap))` in each single year). Delivery speed directly affects how customers rate products, and so it affects future sales.
+:::
+
+#
+
+<div class="footer">Data: synthetic Amazon-style e-commerce dataset, `r fy`-`r ly`. Revenue = net item revenue of non-cancelled orders, before tax and shipping. Built with R, ggplot2 and R Markdown.</div>
