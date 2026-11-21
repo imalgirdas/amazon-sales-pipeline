@@ -1,0 +1,10 @@
+warehouse_id,warehouse_name,city,state,country,region,open_date,capacity_units
+1,WH-East-NJ,Newark,NJ,US,Northeast,2015-03-01,120000
+2,WH-West-CA,Ontario,CA,US,West,2016-06-01,140000
+3,WH-South-TX,Dallas,TX,US,South,2017-09-01,110000
+4,WH-Midwest-IL,Joliet,IL,US,Midwest,2018-04-01,100000
+5,WH-Canada-ON,Mississauga,ON,CA,Canada,2019-05-01,60000
+6,WH-SouthEast-GA,Atlanta,GA,US,South,2023-03-01,90000
+7,WH-UK-Midlands,Coventry,ENG,UK,UK,2023-01-15,70000
+8,WH-DE-NRW,Dortmund,NRW,DE,Germany,2024-02-01,65000
+9,WH-West-WA,Kent,WA,US,West,2024-05-01,85000

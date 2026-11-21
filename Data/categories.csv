@@ -1,0 +1,38 @@
+category_id,category_name,parent_category_id,level
+1,Electronics,,1
+2,Smartphones & Accessories,1,2
+3,Computers & Tablets,1,2
+4,Audio & Headphones,1,2
+5,Smart Home,1,2
+6,Home & Kitchen,,1
+7,Kitchen & Dining,6,2
+8,Furniture,6,2
+9,Home Decor,6,2
+10,Appliances,6,2
+11,Fashion,,1
+12,Womens Clothing,11,2
+13,Mens Clothing,11,2
+14,Shoes,11,2
+15,Jewelry & Watches,11,2
+16,Beauty & Personal Care,,1
+17,Skincare,16,2
+18,Makeup,16,2
+19,Hair Care,16,2
+20,Books & Media,,1
+21,Books,20,2
+22,Video Games,20,2
+23,Movies & Music,20,2
+24,Sports & Outdoors,,1
+25,Fitness Equipment,24,2
+26,Outdoor Recreation,24,2
+27,Cycling,24,2
+28,Toys & Games,,1
+29,Toys,28,2
+30,Board Games & Puzzles,28,2
+31,Grocery,,1
+32,Snacks & Beverages,31,2
+33,Pantry Staples,31,2
+34,Coffee & Tea,31,2
+35,Pet Supplies,,1
+36,Dog Supplies,35,2
+37,Cat Supplies,35,2
